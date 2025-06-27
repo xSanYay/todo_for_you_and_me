@@ -2,10 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Clean Todo App with Subtodos</title>
+    
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    
+    <!-- Froala Design Blocks -->
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/froala-design-blocks/2.0.1/css/froala_blocks.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i" rel="stylesheet">
+
     <style>
-        /* Modern, clean styling for the todo app */
+        :root {
+            /* Default theme variables */
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --card-bg: white;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --border-color: #e0e0e0;
+            --accent-color: #667eea;
+        }
+
+        /* Theme definitions */
+        [data-theme="ocean"] {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-color: #667eea;
+        }
+
+        [data-theme="sunset"] {
+            --primary-gradient: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            --accent-color: #ff6b6b;
+        }
+
+        [data-theme="forest"] {
+            --primary-gradient: linear-gradient(135deg, #48cab2 0%, #2d9687 100%);
+            --accent-color: #48cab2;
+        }
+
+        [data-theme="purple"] {
+            --primary-gradient: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            --accent-color: #a29bfe;
+        }
+
+        [data-theme="fire"] {
+            --primary-gradient: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            --accent-color: #fd79a8;
+        }
+
+        [data-theme="sky"] {
+            --primary-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            --accent-color: #74b9ff;
+        }
+
+        [data-theme="dark"] {
+            --primary-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+            --container-bg: rgba(45, 52, 54, 0.95);
+            --text-primary: #ddd;
+            --text-secondary: #b2bec3;
+            --card-bg: #2d3436;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            --border-color: #636e72;
+            --accent-color: #74b9ff;
+        }
+
+        [data-theme="light"] {
+            --primary-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            --container-bg: rgba(255, 255, 255, 0.98);
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --card-bg: white;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            --border-color: #dee2e6;
+            --accent-color: #6c5ce7;
+        }
+
+        /* Base styles using CSS variables */
         * {
             margin: 0;
             padding: 0;
@@ -13,80 +91,178 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
             min-height: 100vh;
             padding: 20px;
+            transition: all 0.3s ease;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
-        /* Header styling with current time display */
+        /* Theme selector styles */
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-options {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+        }
+
+        .theme-options.show {
+            display: flex;
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: 1px solid var(--border-color);
+        }
+
+        .theme-option:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .theme-option.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-preview.ocean { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview.sunset { background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); }
+        .theme-preview.forest { background: linear-gradient(135deg, #48cab2 0%, #2d9687 100%); }
+        .theme-preview.purple { background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); }
+        .theme-preview.fire { background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); }
+        .theme-preview.sky { background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); }
+        .theme-preview.dark { background: linear-gradient(135deg, #2d3436 0%, #636e72 100%); }
+        .theme-preview.light { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); }
+
+        /* Header styling */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .header h1 {
-            color: #333;
-            font-size: 2.5em;
+            color: var(--text-primary);
+            font-size: 3em;
             font-weight: 300;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .current-time {
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-radius: 25px;
             font-size: 0.9em;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* Form styling for adding new todos */
+        /* Form styling */
         .add-form {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 40px;
         }
 
         .add-form input {
             flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
+            padding: 18px 25px;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            font-size: 1.1em;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            color: var(--text-primary);
         }
 
         .add-form input:focus {
-            border-color: #667eea;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
 
         .add-btn {
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
             border: none;
-            padding: 15px 25px;
-            border-radius: 10px;
+            padding: 18px 30px;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 1.1em;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .add-btn:hover {
-            background: #5a6fd8;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         /* Todo list styling */
@@ -95,71 +271,73 @@
         }
 
         .todo-item {
-            background: white;
-            margin-bottom: 15px;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            background: var(--card-bg);
+            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
             display: flex;
             align-items: center;
-            gap: 15px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            gap: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
         }
 
         .todo-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
 
-        /* Completed todo styling */
         .todo-item.completed {
-            background: #f8f9fa;
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         .todo-item.completed .todo-text {
             text-decoration: line-through;
-            color: #6c757d;
+            color: var(--text-secondary);
         }
 
-        /* Sequence number styling */
         .sequence-number {
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 1.1em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .todo-text {
             flex: 1;
-            font-size: 1.1em;
-            color: #333;
+            font-size: 1.2em;
+            color: var(--text-primary);
+            font-weight: 400;
         }
 
-        /* Action buttons styling */
         .todo-actions {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
-            background: none;
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            border-radius: 5px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.9em;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
         }
 
         .action-btn:hover {
-            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .toggle-btn {
@@ -168,18 +346,10 @@
             border-color: #28a745;
         }
 
-        .toggle-btn:hover {
-            background: #218838;
-        }
-
         .delete-btn {
             background: #dc3545;
             color: white;
             border-color: #dc3545;
-        }
-
-        .delete-btn:hover {
-            background: #c82333;
         }
 
         .move-btn {
@@ -188,124 +358,100 @@
             border-color: #17a2b8;
         }
 
-        .move-btn:hover {
-            background: #138496;
-        }
-
-        /* Empty state styling */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-
-        /* New styles for subtodos and nesting */
+        /* Subtodo styles */
         .subtodo-item {
-            margin-left: 40px;
-            margin-top: 10px;
-            border-left: 3px solid #667eea;
-            background: #f8f9fa;
+            margin-left: 50px;
+            margin-top: 15px;
+            border-left: 4px solid var(--accent-color);
+            background: var(--card-bg);
             position: relative;
-        }
-
-        .subtodo-item::before {
-            content: '';
-            position: absolute;
-            left: -3px;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: #667eea;
+            opacity: 0.9;
         }
 
         .parent-todo {
-            border: 2px solid #667eea;
-        }
-
-        .parent-todo.has-subtodos.completed {
-            background: #e8f5e8;
-            border-color: #28a745;
+            border: 2px solid var(--accent-color);
         }
 
         .add-subtodo-btn {
             background: #17a2b8;
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 10px 18px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8em;
-            margin-top: 10px;
-        }
-
-        .add-subtodo-btn:hover {
-            background: #138496;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
         }
 
         .subtodo-form {
-            margin-top: 15px;
-            margin-left: 40px;
-            padding: 15px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
+            margin-top: 20px;
+            margin-left: 50px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-color);
+            box-shadow: var(--card-shadow);
         }
 
         .subtodo-form input {
             width: 70%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-right: 10px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-right: 15px;
+            background: var(--card-bg);
+            color: var(--text-primary);
         }
 
         .subtodo-form button {
             background: #28a745;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 12px 18px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .cancel-btn {
             background: #6c757d !important;
-            margin-left: 5px;
+            margin-left: 8px;
         }
 
         .completion-indicator {
-            font-size: 0.8em;
-            color: #666;
-            margin-left: 10px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-left: 15px;
+            font-style: italic;
         }
 
-        .auto-completed {
-            opacity: 0.8;
-            background: #e8f5e8 !important;
+        .empty-state {
+            text-align: center;
+            padding: 80px 30px;
+            color: var(--text-secondary);
         }
 
-        /* Hide move buttons for subtodos that can't move */
-        .move-disabled {
-            opacity: 0.3;
-            pointer-events: none;
+        .empty-state h3 {
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            color: var(--text-primary);
         }
 
         /* Responsive design */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .container {
                 margin: 10px;
-                padding: 20px;
+                padding: 25px;
             }
 
             .header {
                 flex-direction: column;
-                gap: 15px;
+                gap: 20px;
                 text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2.2em;
             }
 
             .add-form {
@@ -313,13 +459,77 @@
             }
 
             .todo-actions {
-                flex-wrap: wrap;
+                flex-direction: column;
+                gap: 5px;
             }
+
+            .theme-selector {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+            }
+
+            .subtodo-item,
+            .subtodo-form {
+                margin-left: 20px;
+            }
+        }
+
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
+<body data-theme="ocean">
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeSelector()">
+            <i class="fa fa-palette"></i> Themes
+        </button>
+        <div class="theme-options" id="themeOptions">
+            <div class="theme-option" data-theme="ocean" onclick="setTheme('ocean')">
+                <div class="theme-preview ocean"></div>
+                <span>Ocean Blue</span>
+            </div>
+            <div class="theme-option" data-theme="sunset" onclick="setTheme('sunset')">
+                <div class="theme-preview sunset"></div>
+                <span>Sunset Orange</span>
+            </div>
+            <div class="theme-option" data-theme="forest" onclick="setTheme('forest')">
+                <div class="theme-preview forest"></div>
+                <span>Forest Green</span>
+            </div>
+            <div class="theme-option" data-theme="purple" onclick="setTheme('purple')">
+                <div class="theme-preview purple"></div>
+                <span>Royal Purple</span>
+            </div>
+            <div class="theme-option" data-theme="fire" onclick="setTheme('fire')">
+                <div class="theme-preview fire"></div>
+                <span>Fire Pink</span>
+            </div>
+            <div class="theme-option" data-theme="sky" onclick="setTheme('sky')">
+                <div class="theme-preview sky"></div>
+                <span>Sky Blue</span>
+            </div>
+            <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+                <div class="theme-preview dark"></div>
+                <span>Dark Mode</span>
+            </div>
+            <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+                <div class="theme-preview light"></div>
+                <span>Light Mode</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container fade-in">
         <!-- Header with app title and current time -->
         <div class="header">
             <h1>Clean Todo App</h1>
@@ -337,7 +547,9 @@
                 required
                 autocomplete="off"
             >
-            <button type="submit" class="add-btn">ADD TODO</button>
+            <button type="submit" class="add-btn">
+                <i class="fa fa-plus"></i> ADD TODO
+            </button>
         </form>
 
         <!-- Todo list display with hierarchical structure -->
@@ -345,7 +557,7 @@
             <ul class="todo-list">
                 {% for main_todo, subtodos in hierarchical_todos %}
                     <!-- Main Todo -->
-                    <li class="todo-item parent-todo {% if main_todo.completed %}completed{% endif %} {% if subtodos %}has-subtodos{% endif %} {% if main_todo.completed and subtodos %}auto-completed{% endif %}">
+                    <li class="todo-item parent-todo {% if main_todo.completed %}completed{% endif %} {% if subtodos %}has-subtodos{% endif %}">
                         <div class="sequence-number">{{ main_todo.sequence }}</div>
                         
                         <div class="todo-text">
@@ -362,6 +574,7 @@
                             <form style="display: inline;" action="/toggle-todo/{{ main_todo.id }}" method="post">
                                 <button type="submit" class="action-btn toggle-btn" 
                                         {% if subtodos and not main_todo.completed %}disabled title="Complete all subtodos first"{% endif %}>
+                                    <i class="fa fa-check"></i>
                                     {% if main_todo.completed %}Undo{% else %}Done{% endif %}
                                 </button>
                             </form>
@@ -369,13 +582,17 @@
                             <!-- Move buttons for main todos -->
                             {% if main_todo.sequence > 1 %}
                             <form style="display: inline;" action="/move-up/{{ main_todo.id }}" method="post">
-                                <button type="submit" class="action-btn move-btn">↑</button>
+                                <button type="submit" class="action-btn move-btn">
+                                    <i class="fa fa-arrow-up"></i>
+                                </button>
                             </form>
                             {% endif %}
                             
                             {% if main_todo.sequence < hierarchical_todos|length %}
                             <form style="display: inline;" action="/move-down/{{ main_todo.id }}" method="post">
-                                <button type="submit" class="action-btn move-btn">↓</button>
+                                <button type="submit" class="action-btn move-btn">
+                                    <i class="fa fa-arrow-down"></i>
+                                </button>
                             </form>
                             {% endif %}
                             
@@ -383,13 +600,13 @@
                             <form style="display: inline;" action="/delete-todo/{{ main_todo.id }}" method="post">
                                 <button type="submit" class="action-btn delete-btn" 
                                         onclick="return confirm('This will delete the todo and all its subtodos. Are you sure?')">
-                                    Delete
+                                    <i class="fa fa-trash"></i> Delete
                                 </button>
                             </form>
                             
                             <!-- Add subtodo button -->
                             <button type="button" class="add-subtodo-btn" onclick="toggleSubtodoForm('{{ main_todo.id }}')">
-                                + Add Subtodo
+                                <i class="fa fa-plus"></i> Add Subtodo
                             </button>
                         </div>
                     </li>
@@ -399,8 +616,12 @@
                         <form action="/add-todo" method="post">
                             <input type="hidden" name="parent_id" value="{{ main_todo.id }}">
                             <input type="text" name="title" placeholder="Enter subtodo..." required>
-                            <button type="submit">Add</button>
-                            <button type="button" class="cancel-btn" onclick="toggleSubtodoForm('{{ main_todo.id }}')">Cancel</button>
+                            <button type="submit">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                            <button type="button" class="cancel-btn" onclick="toggleSubtodoForm('{{ main_todo.id }}')">
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
                         </form>
                     </div>
 
@@ -415,6 +636,7 @@
                             <!-- Toggle subtodo completion -->
                             <form style="display: inline;" action="/toggle-todo/{{ subtodo.id }}" method="post">
                                 <button type="submit" class="action-btn toggle-btn">
+                                    <i class="fa fa-check"></i>
                                     {% if subtodo.completed %}Undo{% else %}Done{% endif %}
                                 </button>
                             </form>
@@ -422,13 +644,17 @@
                             <!-- Move buttons for subtodos -->
                             {% if subtodo.sequence > 1 %}
                             <form style="display: inline;" action="/move-up/{{ subtodo.id }}" method="post">
-                                <button type="submit" class="action-btn move-btn">↑</button>
+                                <button type="submit" class="action-btn move-btn">
+                                    <i class="fa fa-arrow-up"></i>
+                                </button>
                             </form>
                             {% endif %}
                             
                             {% if subtodo.sequence < subtodos|length %}
                             <form style="display: inline;" action="/move-down/{{ subtodo.id }}" method="post">
-                                <button type="submit" class="action-btn move-btn">↓</button>
+                                <button type="submit" class="action-btn move-btn">
+                                    <i class="fa fa-arrow-down"></i>
+                                </button>
                             </form>
                             {% endif %}
                             
@@ -436,7 +662,7 @@
                             <form style="display: inline;" action="/delete-todo/{{ subtodo.id }}" method="post">
                                 <button type="submit" class="action-btn delete-btn" 
                                         onclick="return confirm('Are you sure you want to delete this subtodo?')">
-                                    Delete
+                                    <i class="fa fa-trash"></i> Delete
                                 </button>
                             </form>
                         </div>
@@ -447,15 +673,40 @@
         {% else %}
             <!-- Empty state when no todos exist -->
             <div class="empty-state">
-                <h3>No todos yet!</h3>
+                <h3><i class="fa fa-list-alt"></i> No todos yet!</h3>
                 <p>Add your first task above to get started with better sequencing.</p>
             </div>
         {% endif %}
     </div>
 
     <script>
-        // Simple JavaScript for enhanced user experience
+        // Theme management
+        let currentTheme = localStorage.getItem('todoAppTheme') || 'ocean';
+        
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('todoAppTheme', theme);
+            
+            // Update active theme option
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-theme="${theme}"]`).classList.add('active');
+            
+            // Hide theme selector
+            document.getElementById('themeOptions').classList.remove('show');
+        }
+
+        function toggleThemeSelector() {
+            const options = document.getElementById('themeOptions');
+            options.classList.toggle('show');
+        }
+
+        // Initialize theme on page load
         document.addEventListener('DOMContentLoaded', function() {
+            setTheme(currentTheme);
+            
             // Auto-focus on the input field when page loads
             const input = document.querySelector('input[name="title"]');
             if (input) {
@@ -495,8 +746,12 @@
             }
         }
 
-        // Close subtodo forms when clicking outside
+        // Close theme selector when clicking outside
         document.addEventListener('click', function(e) {
+            if (!e.target.closest('.theme-selector')) {
+                document.getElementById('themeOptions').classList.remove('show');
+            }
+            
             if (!e.target.closest('.subtodo-form') && !e.target.closest('.add-subtodo-btn')) {
                 const forms = document.querySelectorAll('.subtodo-form');
                 forms.forEach(form => {
@@ -505,9 +760,9 @@
             }
         });
 
-        // Handle Enter key for subtodo forms
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                document.getElementById('themeOptions').classList.remove('show');
                 const forms = document.querySelectorAll('.subtodo-form');
                 forms.forEach(form => {
                     form.style.display = 'none';

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>Integrations - Clean Todo App</title>
+    
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    
+    <!-- Froala Design Blocks -->
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/froala-design-blocks/2.0.1/css/froala_blocks.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Default theme variables */
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --card-bg: white;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --border-color: #e0e0e0;
+            --accent-color: #667eea;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        /* Header styling */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 2.5em;
+            font-weight: 300;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            border: 1px solid var(--border-color);
+        }
+
+        .back-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+
+        /* Integration cards */
+        .integration-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .integration-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .integration-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .integration-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .integration-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+        }
+
+        .calendar-icon {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+        }
+
+        .integration-name {
+            font-size: 1.5em;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-connected {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .status-disconnected {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .status-enabled {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .status-disabled {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        /* Forms */
+        .integration-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1em;
+            outline: none;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        /* Instructions */
+        .instructions {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h4 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .instructions code {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 25px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .integration-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fa fa-plug"></i> Integrations</h1>
+            <a href="/" class="back-btn">
+                <i class="fa fa-arrow-left"></i> Back to Todos
+            </a>
+        </div>
+
+        <!-- Success/Error Messages -->
+        {% set success = request.query_params.get('success') %}
+        {% set error = request.query_params.get('error') %}
+        
+        {% if success == 'calendar_connected' %}
+        <div class="alert alert-success">
+            <i class="fa fa-check-circle"></i> Google Calendar successfully connected!
+        </div>
+        {% elif success == 'calendar_disconnected' %}
+        <div class="alert alert-success">
+            <i class="fa fa-check-circle"></i> Google Calendar disconnected successfully.
+        </div>
+        {% elif error == 'oauth_denied' %}
+        <div class="alert alert-danger">
+            <i class="fa fa-exclamation-circle"></i> OAuth access was denied. Please try again.
+        </div>
+        {% elif error == 'oauth_failed' %}
+        <div class="alert alert-danger">
+            <i class="fa fa-exclamation-circle"></i> OAuth setup failed. Please check your credentials.
+        </div>
+        {% elif error == 'no_code' %}
+        <div class="alert alert-danger">
+            <i class="fa fa-exclamation-circle"></i> No authorization code received. Please try again.
+        </div>
+        {% endif %}
+
+        <!-- Google Calendar Integration -->
+        <div class="integration-card">
+            <div class="integration-header">
+                <div class="integration-title">
+                    <div class="integration-icon calendar-icon">
+                        <i class="fa fa-calendar"></i>
+                    </div>
+                    <div>
+                        <div class="integration-name">Google Calendar</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">
+                            Automatically create calendar events when todos are completed
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    {% if calendar_configured %}
+                        {% if calendar_status.connected %}
+                            <span class="status-badge status-connected">
+                                <i class="fa fa-check"></i> Connected
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-disconnected">
+                                <i class="fa fa-times"></i> Error
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="status-badge status-disconnected">
+                            <i class="fa fa-times"></i> Not Set Up
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if calendar_configured %}
+                <!-- Calendar is configured -->
+                <div style="margin-bottom: 20px;">
+                    {% if calendar_status.connected %}
+                        <p style="color: var(--success-color); font-weight: 500;">
+                            <i class="fa fa-check-circle"></i> 
+                            Connected to: {{ calendar_status.calendar_name }}
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">
+                            Calendar events will be created automatically when you complete todos.
+                        </p>
+                    {% else %}
+                        <p style="color: var(--danger-color); font-weight: 500;">
+                            <i class="fa fa-exclamation-circle"></i> 
+                            Connection Error: {{ calendar_status.error }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="btn-group">
+                    <form action="/calendar/toggle" method="post" style="display: inline;">
+                        {% if calendar_enabled %}
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fa fa-pause"></i> Disable Calendar Events
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fa fa-play"></i> Enable Calendar Events
+                            </button>
+                        {% endif %}
+                    </form>
+                    
+                    <form action="/calendar/disconnect" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to disconnect Google Calendar?')">
+                            <i class="fa fa-unlink"></i> Disconnect
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <!-- Calendar setup form -->
+                <div class="instructions">
+                    <h4><i class="fa fa-info-circle"></i> Setup Instructions</h4>
+                    <ol>
+                        <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                        <li>Create a new project or select an existing one</li>
+                        <li>Enable the <strong>Google Calendar API</strong></li>
+                        <li>Go to <strong>APIs & Services > Credentials</strong></li>
+                        <li>Click <strong>Create Credentials > OAuth 2.0 Client IDs</strong></li>
+                        <li>Set Application type to <strong>Web application</strong></li>
+                        <li>Add <code>http://localhost:8000/calendar/callback</code> to Authorized redirect URIs</li>
+                        <li>Copy the Client ID and Client Secret below</li>
+                    </ol>
+                </div>
+
+                <form class="integration-form" action="/calendar/setup" method="post">
+                    <div class="form-group">
+                        <label class="form-label" for="client_id">
+                            <i class="fa fa-key"></i> Client ID
+                        </label>
+                        <input 
+                            type="text" 
+                            id="client_id" 
+                            name="client_id" 
+                            class="form-input" 
+                            placeholder="Your Google OAuth Client ID"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="client_secret">
+                            <i class="fa fa-lock"></i> Client Secret
+                        </label>
+                        <input 
+                            type="text" 
+                            id="client_secret" 
+                            name="client_secret" 
+                            class="form-input" 
+                            placeholder="Your Google OAuth Client Secret"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="redirect_uri">
+                            <i class="fa fa-link"></i> Redirect URI
+                        </label>
+                        <input 
+                            type="url" 
+                            id="redirect_uri" 
+                            name="redirect_uri" 
+                            class="form-input" 
+                            value="http://localhost:8000/calendar/callback"
+                            readonly
+                        >
+                        <small style="color: var(--text-secondary); font-size: 0.85em;">
+                            Use this exact URL in your Google Cloud Console
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-google"></i> Connect Google Calendar
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- Future integrations placeholder -->
+        <div class="integration-card" style="opacity: 0.6;">
+            <div class="integration-header">
+                <div class="integration-title">
+                    <div class="integration-icon" style="background: linear-gradient(135deg, #7289da 0%, #5865f2 100%);">
+                        <i class="fa fa-bell"></i>
+                    </div>
+                    <div>
+                        <div class="integration-name">More Integrations</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">
+                            Slack, Discord, Email notifications - Coming Soon!
+                        </div>
+                    </div>
+                </div>
+                <span class="status-badge" style="background: var(--text-secondary);">
+                    <i class="fa fa-clock-o"></i> Coming Soon
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

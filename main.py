@@ -7,8 +7,11 @@ from typing import List, Optional
 from datetime import datetime
 import uuid
 
+# Import calendar integration
+from calendar_integration import calendar_integration
+
 # Initialize FastAPI app
-app = FastAPI(title="Todo App", description="A simple sequencing todo application with subtodos and themes")
+app = FastAPI(title="Todo App", description="A simple sequencing todo application with subtodos, themes, and calendar integration")
 
 # Setup templates directory for HTML rendering
 templates = Jinja2Templates(directory="templates")
@@ -16,103 +19,36 @@ templates = Jinja2Templates(directory="templates")
 # In-memory storage for todos (in production, use a database)
 todos_db = []
 
-# Theme storage (in production, use a database or session store)
-user_themes = {}
+# User settings storage (in production, use a database)
+user_settings = {
+    "calendar_enabled": False,
+    "theme": "ocean"
+}
 
 # Available themes configuration
 THEMES = {
-    "blue_gradient": {
-        "name": "Blue Gradient",
-        "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        "primary": "#667eea",
-        "primary_hover": "#5a6fd8",
-        "container_bg": "rgba(255, 255, 255, 0.95)",
-        "text_color": "#333",
-        "border_color": "#f0f0f0"
-    },
-    "ocean_gradient": {
-        "name": "Ocean Gradient", 
-        "background": "linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)",
-        "primary": "#2196F3",
-        "primary_hover": "#1976D2",
-        "container_bg": "rgba(255, 255, 255, 0.95)",
-        "text_color": "#333",
-        "border_color": "#e3f2fd"
-    },
-    "sunset_gradient": {
-        "name": "Sunset Gradient",
-        "background": "linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%)",
-        "primary": "#FF6B6B",
-        "primary_hover": "#FF5252",
-        "container_bg": "rgba(255, 255, 255, 0.95)",
-        "text_color": "#333",
-        "border_color": "#ffe0e0"
-    },
-    "forest_gradient": {
-        "name": "Forest Gradient",
-        "background": "linear-gradient(135deg, #56AB2F 0%, #A8E6CF 100%)",
-        "primary": "#56AB2F",
-        "primary_hover": "#4CAF50",
-        "container_bg": "rgba(255, 255, 255, 0.95)",
-        "text_color": "#333",
-        "border_color": "#e8f5e8"
-    },
-    "purple_gradient": {
-        "name": "Purple Gradient",
-        "background": "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)",
-        "primary": "#8E2DE2",
-        "primary_hover": "#7B1FA2",
-        "container_bg": "rgba(255, 255, 255, 0.95)",
-        "text_color": "#333",
-        "border_color": "#f3e5f5"
-    },
-    "light_mode": {
-        "name": "Light Mode",
-        "background": "#f8f9fa",
-        "primary": "#007bff",
-        "primary_hover": "#0056b3",
-        "container_bg": "#ffffff",
-        "text_color": "#212529",
-        "border_color": "#dee2e6"
-    },
-    "dark_mode": {
-        "name": "Dark Mode",
-        "background": "#1a1a1a",
-        "primary": "#bb86fc",
-        "primary_hover": "#985eff",
-        "container_bg": "#2d2d2d",
-        "text_color": "#ffffff",
-        "border_color": "#404040"
-    },
-    "midnight": {
-        "name": "Midnight",
-        "background": "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%)",
-        "primary": "#03dac6",
-        "primary_hover": "#018786",
-        "container_bg": "rgba(45, 45, 45, 0.95)",
-        "text_color": "#ffffff",
-        "border_color": "#404040"
-    }
+    "ocean": {"name": "Ocean Blue"},
+    "sunset": {"name": "Sunset Orange"},
+    "forest": {"name": "Forest Green"},
+    "purple": {"name": "Royal Purple"},
+    "fire": {"name": "Fire Pink"},
+    "sky": {"name": "Sky Blue"},
+    "dark": {"name": "Dark Mode"},
+    "light": {"name": "Light Mode"}
 }
 
 class Todo(BaseModel):
     """
     Todo model defining the structure of each task
-    - id: unique identifier for each todo
-    - title: the task description
-    - completed: boolean status of completion
-    - sequence: order number for task sequencing
-    - created_at: timestamp when task was created
-    - parent_id: ID of parent todo (None for main todos)
-    - level: nesting level (0 for main todo, 1 for subtodo, etc.)
     """
     id: str
     title: str
     completed: bool = False
     sequence: int
     created_at: datetime
-    parent_id: Optional[str] = None  # New: For subtodo relationships
-    level: int = 0  # New: For nesting level (0 = main todo, 1 = subtodo)
+    completed_at: Optional[datetime] = None  # Track completion time
+    parent_id: Optional[str] = None
+    level: int = 0
 
 class TodoCreate(BaseModel):
     """Model for creating new todos - only requires title"""
@@ -121,17 +57,13 @@ class TodoCreate(BaseModel):
 def get_next_sequence(parent_id: Optional[str] = None) -> int:
     """
     Calculate the next sequence number for new todos
-    If parent_id is provided, get sequence within that parent's subtodos
-    Otherwise, get sequence for main todos
     """
     if parent_id:
-        # Get sequence for subtodos of this parent
         sibling_todos = [todo for todo in todos_db if todo.parent_id == parent_id]
         if not sibling_todos:
             return 1
         return max(todo.sequence for todo in sibling_todos) + 1
     else:
-        # Get sequence for main todos (parent_id is None)
         main_todos = [todo for todo in todos_db if todo.parent_id is None]
         if not main_todos:
             return 1
@@ -139,15 +71,11 @@ def get_next_sequence(parent_id: Optional[str] = None) -> int:
 
 def reorder_sequences(parent_id: Optional[str] = None):
     """
-    Reorder todo sequences to be consecutive (1, 2, 3, ...)
-    If parent_id is provided, reorder only subtodos of that parent
-    Otherwise, reorder main todos
+    Reorder todo sequences to be consecutive
     """
     if parent_id:
-        # Reorder subtodos of specific parent
         todos_to_reorder = [todo for todo in todos_db if todo.parent_id == parent_id]
     else:
-        # Reorder main todos
         todos_to_reorder = [todo for todo in todos_db if todo.parent_id is None]
     
     sorted_todos = sorted(todos_to_reorder, key=lambda x: x.sequence)
@@ -162,7 +90,6 @@ def get_subtodos(parent_id: str) -> List[Todo]:
 def check_and_update_parent_completion(parent_id: str):
     """
     Check if all subtodos are completed and auto-complete parent if so
-    Also auto-uncomplete parent if any subtodo becomes incomplete
     """
     parent_todo = None
     for todo in todos_db:
@@ -179,12 +106,30 @@ def check_and_update_parent_completion(parent_id: str):
     
     # Check if all subtodos are completed
     all_completed = all(subtodo.completed for subtodo in subtodos)
-    parent_todo.completed = all_completed
+    
+    # Handle parent completion with calendar integration
+    if all_completed and not parent_todo.completed:
+        parent_todo.completed = True
+        parent_todo.completed_at = datetime.now()
+        
+        # Create calendar event for parent todo if enabled
+        if user_settings.get("calendar_enabled", False) and calendar_integration.is_configured():
+            try:
+                calendar_integration.create_calendar_event(
+                    todo_title=parent_todo.title,
+                    start_time=parent_todo.created_at,
+                    end_time=parent_todo.completed_at,
+                    description=f"Parent task completed via Todo App\nAll {len(subtodos)} subtodos completed\nCreated: {parent_todo.created_at.strftime('%Y-%m-%d %H:%M')}"
+                )
+            except Exception as e:
+                print(f"Calendar event creation failed for parent todo: {e}")
+    elif not all_completed and parent_todo.completed:
+        parent_todo.completed = False
+        parent_todo.completed_at = None
 
 def get_hierarchical_todos():
     """
-    Get todos organized hierarchically (main todos with their subtodos)
-    Returns a list of tuples: (main_todo, [subtodos])
+    Get todos organized hierarchically
     """
     main_todos = [todo for todo in todos_db if todo.parent_id is None]
     main_todos = sorted(main_todos, key=lambda x: x.sequence)
@@ -207,7 +152,6 @@ async def read_todos(request: Request):
     Main page endpoint - displays all todos in hierarchical order with theme support
     """
     hierarchical_todos = get_hierarchical_todos()
-    current_theme = get_user_theme(request)
     
     return templates.TemplateResponse(
         "index.html", 
@@ -215,9 +159,8 @@ async def read_todos(request: Request):
             "request": request, 
             "hierarchical_todos": hierarchical_todos, 
             "current_time": datetime.now(),
-            "themes": THEMES,
-            "current_theme": current_theme,
-            "theme_config": THEMES[current_theme]
+            "calendar_enabled": user_settings.get("calendar_enabled", False),
+            "calendar_connected": calendar_integration.is_configured()
         }
     )
 
@@ -235,10 +178,6 @@ async def set_theme(theme_name: str):
 async def add_todo(title: str = Form(...), parent_id: Optional[str] = Form(None)):
     """
     Add a new todo to the list
-    - Creates unique ID using UUID
-    - Assigns next sequence number (within parent if subtodo)
-    - Adds timestamp
-    - Sets parent_id and level for subtodos
     """
     if not title.strip():
         raise HTTPException(status_code=400, detail="Todo title cannot be empty")
@@ -246,7 +185,6 @@ async def add_todo(title: str = Form(...), parent_id: Optional[str] = Form(None)
     # Determine level based on parent
     level = 0
     if parent_id:
-        # Find parent to determine level
         parent_todo = None
         for todo in todos_db:
             if todo.id == parent_id:
@@ -259,13 +197,13 @@ async def add_todo(title: str = Form(...), parent_id: Optional[str] = Form(None)
         level = parent_todo.level + 1
     
     new_todo = Todo(
-        id=str(uuid.uuid4()),  # Generate unique ID
+        id=str(uuid.uuid4()),
         title=title.strip(),
         completed=False,
-        sequence=get_next_sequence(parent_id),  # Auto-assign next sequence
+        sequence=get_next_sequence(parent_id),
         created_at=datetime.now(),
-        parent_id=parent_id,  # Set parent relationship
-        level=level  # Set nesting level
+        parent_id=parent_id,
+        level=level
     )
     
     todos_db.append(new_todo)
@@ -274,9 +212,7 @@ async def add_todo(title: str = Form(...), parent_id: Optional[str] = Form(None)
 @app.post("/toggle-todo/{todo_id}")
 async def toggle_todo(todo_id: str):
     """
-    Toggle completion status of a specific todo
-    For subtodos: also update parent completion status
-    For main todos with subtodos: prevent manual completion if subtodos exist
+    Toggle completion status with calendar integration
     """
     current_todo = None
     for todo in todos_db:
@@ -291,11 +227,54 @@ async def toggle_todo(todo_id: str):
     if current_todo.parent_id is None:
         subtodos = get_subtodos(current_todo.id)
         if subtodos and not current_todo.completed:
-            # Don't allow manual completion of parent with incomplete subtodos
             return RedirectResponse(url="/", status_code=303)
     
     # Toggle the todo
+    was_completed = current_todo.completed
     current_todo.completed = not current_todo.completed
+    
+    # Debug logging
+    print(f"Todo toggle - ID: {current_todo.id}, Title: {current_todo.title}")
+    print(f"Was completed: {was_completed}, Now completed: {current_todo.completed}")
+    print(f"Calendar enabled: {user_settings.get('calendar_enabled', False)}")
+    print(f"Calendar configured: {calendar_integration.is_configured()}")
+    
+    # Handle completion time and calendar integration
+    if current_todo.completed and not was_completed:
+        # Just completed
+        current_todo.completed_at = datetime.now()
+        
+        # Create calendar event if enabled
+        if user_settings.get("calendar_enabled", False) and calendar_integration.is_configured():
+            try:
+                # For main todos without subtodos, create immediate calendar event
+                if current_todo.parent_id is None:
+                    subtodos = get_subtodos(current_todo.id)
+                    if not subtodos:  # Main todo with no subtodos
+                        print(f"Creating calendar event for standalone main todo: {current_todo.title}")
+                        calendar_integration.create_calendar_event(
+                            todo_title=current_todo.title,
+                            start_time=current_todo.created_at,
+                            end_time=current_todo.completed_at,
+                            description=f"Main task completed via Todo App\nCreated: {current_todo.created_at.strftime('%Y-%m-%d %H:%M')}"
+                        )
+                        print("Calendar event created successfully!")
+                else:
+                    # For subtodos, create immediate calendar event
+                    print(f"Creating calendar event for subtodo: {current_todo.title}")
+                    calendar_integration.create_calendar_event(
+                        todo_title=current_todo.title,
+                        start_time=current_todo.created_at,
+                        end_time=current_todo.completed_at,
+                        description=f"Subtask completed via Todo App\nCreated: {current_todo.created_at.strftime('%Y-%m-%d %H:%M')}"
+                    )
+                    print("Calendar event created successfully!")
+            except Exception as e:
+                print(f"Calendar event creation failed: {e}")
+    
+    elif not current_todo.completed and was_completed:
+        # Uncompleted
+        current_todo.completed_at = None
     
     # If this is a subtodo, update parent completion status
     if current_todo.parent_id:
@@ -307,8 +286,6 @@ async def toggle_todo(todo_id: str):
 async def delete_todo(todo_id: str):
     """
     Delete a todo and reorder remaining sequences
-    If deleting a main todo, also delete all its subtodos
-    If deleting a subtodo, update parent completion status
     """
     global todos_db
     
@@ -326,14 +303,11 @@ async def delete_todo(todo_id: str):
     if todo_to_delete.parent_id is None:
         # Deleting a main todo - also delete all its subtodos
         todos_db = [todo for todo in todos_db if todo.id != todo_id and todo.parent_id != todo_id]
-        # Reorder main todos
         reorder_sequences(None)
     else:
         # Deleting a subtodo
         todos_db = [todo for todo in todos_db if todo.id != todo_id]
-        # Reorder subtodos of the same parent
         reorder_sequences(parent_id)
-        # Update parent completion status
         check_and_update_parent_completion(parent_id)
     
     return RedirectResponse(url="/", status_code=303)
@@ -341,8 +315,7 @@ async def delete_todo(todo_id: str):
 @app.post("/move-up/{todo_id}")
 async def move_todo_up(todo_id: str):
     """
-    Move a todo up in sequence (within its level)
-    Main todos move among main todos, subtodos move among siblings
+    Move a todo up in sequence
     """
     current_todo = None
     for todo in todos_db:
@@ -366,8 +339,7 @@ async def move_todo_up(todo_id: str):
 @app.post("/move-down/{todo_id}")
 async def move_todo_down(todo_id: str):
     """
-    Move a todo down in sequence (within its level)
-    Main todos move among main todos, subtodos move among siblings
+    Move a todo down in sequence
     """
     current_todo = None
     for todo in todos_db:
@@ -395,13 +367,83 @@ async def move_todo_down(todo_id: str):
     
     return RedirectResponse(url="/", status_code=303)
 
+# Calendar Integration Endpoints
+
+@app.get("/integrations", response_class=HTMLResponse)
+async def integrations_page(request: Request):
+    """Display integrations configuration page"""
+    calendar_status = calendar_integration.test_connection()
+    
+    return templates.TemplateResponse(
+        "integrations.html",
+        {
+            "request": request,
+            "calendar_configured": calendar_integration.is_configured(),
+            "calendar_status": calendar_status,
+            "calendar_enabled": user_settings.get("calendar_enabled", False)
+        }
+    )
+
+@app.post("/calendar/setup")
+async def setup_calendar(
+    client_id: str = Form(...),
+    client_secret: str = Form(...),
+    redirect_uri: str = Form(default="http://localhost:8000/calendar/callback")
+):
+    """Setup Google Calendar OAuth configuration"""
+    try:
+        result = calendar_integration.set_oauth_config(client_id, client_secret, redirect_uri)
+        return RedirectResponse(url=result["authorization_url"], status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Setup failed: {str(e)}")
+
+@app.get("/calendar/callback")
+async def calendar_callback(code: str = None, error: str = None):
+    """Handle Google Calendar OAuth callback"""
+    if error:
+        return RedirectResponse(url="/integrations?error=oauth_denied", status_code=303)
+    
+    if not code:
+        return RedirectResponse(url="/integrations?error=no_code", status_code=303)
+    
+    success = calendar_integration.handle_oauth_callback(code, "http://localhost:8000/calendar/callback")
+    
+    if success:
+        user_settings["calendar_enabled"] = True
+        return RedirectResponse(url="/integrations?success=calendar_connected", status_code=303)
+    else:
+        return RedirectResponse(url="/integrations?error=oauth_failed", status_code=303)
+
+@app.post("/calendar/toggle")
+async def toggle_calendar():
+    """Toggle calendar integration on/off"""
+    user_settings["calendar_enabled"] = not user_settings.get("calendar_enabled", False)
+    return RedirectResponse(url="/integrations", status_code=303)
+
+@app.post("/calendar/disconnect")
+async def disconnect_calendar():
+    """Disconnect calendar integration"""
+    calendar_integration.disconnect()
+    user_settings["calendar_enabled"] = False
+    return RedirectResponse(url="/integrations?success=calendar_disconnected", status_code=303)
+
+@app.get("/calendar/test")
+async def test_calendar():
+    """Test calendar connection"""
+    status = calendar_integration.test_connection()
+    return status
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     """Simple health check endpoint"""
-    return {"status": "healthy", "todos_count": len(todos_db)}
+    return {
+        "status": "healthy", 
+        "todos_count": len(todos_db),
+        "calendar_enabled": user_settings.get("calendar_enabled", False),
+        "calendar_connected": calendar_integration.is_configured()
+    }
 
 if __name__ == "__main__":
     import uvicorn
-    # Run the application (for development)
     uvicorn.run(app, host="0.0.0.0", port=9000)

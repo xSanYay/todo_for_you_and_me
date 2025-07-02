@@ -1,2 +1,5 @@
 .todo/
 *__pycache__/
+oauth_config.json
+calendar_credentials.json
+*.pyc

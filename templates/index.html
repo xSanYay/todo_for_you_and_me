@@ -221,6 +221,62 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
+        /* Calendar integration status */
+        .calendar-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .calendar-status.connected {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .calendar-status .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .calendar-status .status-indicator.active {
+            background: #4CAF50;
+        }
+
+        .calendar-status .status-indicator.inactive {
+            background: #FF9800;
+        }
+
+        /* Integrations button */
+        .integration-btn {
+            display: inline-flex;
+            align-items: center;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.85em;
+            border: 1px solid var(--border-color);
+            gap: 6px;
+        }
+
+        .integration-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+        }
+
         /* Form styling */
         .add-form {
             display: flex;
@@ -485,6 +541,12 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body data-theme="ocean">
@@ -533,8 +595,27 @@
         <!-- Header with app title and current time -->
         <div class="header">
             <h1>Clean Todo App</h1>
-            <div class="current-time">
-                {{ current_time.strftime("%Y-%m-%d %H:%M") }}
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- Calendar Integration Status -->
+                {% if calendar_connected %}
+                    <div class="calendar-status connected" title="Google Calendar Connected">
+                        <i class="fa fa-calendar"></i>
+                        {% if calendar_enabled %}
+                            <span class="status-indicator active"></span>
+                        {% else %}
+                            <span class="status-indicator inactive"></span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <!-- Integrations Button -->
+                <a href="/integrations" class="integration-btn">
+                    <i class="fa fa-cog"></i> Integrations
+                </a>
+                
+                <div class="current-time">
+                    {{ current_time.strftime("%Y-%m-%d %H:%M") }}
+                </div>
             </div>
         </div>
 

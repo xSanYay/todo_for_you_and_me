@@ -250,23 +250,46 @@ class CalendarIntegration:
             duration = end_time - start_time
             duration_str = self._format_duration(duration)
             
-            # Create event
+            # Get proper timezone - try multiple methods for best compatibility
+            try:
+                # Method 1: Try to get system timezone
+                import time
+                import os
+                
+                # Check for Asia/Kolkata (IST) timezone
+                if time.tzname[0] == 'IST' or time.tzname[1] == 'IST':
+                    timezone = 'Asia/Kolkata'
+                else:
+                    # Fallback to reading system timezone
+                    timezone = os.popen('timedatectl show -p Timezone --value').read().strip()
+                    if not timezone:
+                        timezone = 'Asia/Kolkata'  # Default for IST
+            except:
+                # Ultimate fallback
+                timezone = 'Asia/Kolkata'
+            
+            # Create event with proper timezone
             event = {
-                'summary': f"Todo Completed: {todo_title}",
+                'summary': f"{todo_title}",
                 'description': f"{description}\n\nDuration: {duration_str}",
                 'start': {
                     'dateTime': start_time.isoformat(),
-                    'timeZone': 'UTC',
+                    'timeZone': timezone,
                 },
                 'end': {
                     'dateTime': end_time.isoformat(),
-                    'timeZone': 'UTC',
+                    'timeZone': timezone,
                 },
                 'colorId': '2',  # Green color for completed tasks
             }
             
+            print(f"Creating calendar event in timezone: {timezone}")
+            print(f"Start time: {start_time.isoformat()}")
+            print(f"End time: {end_time.isoformat()}")
+            
             # Insert event into primary calendar
             event = self.service.events().insert(calendarId='primary', body=event).execute()
+            print(f"Calendar event created successfully with ID: {event.get('id')}")
             
             return True
             
